@@ -1,0 +1,42 @@
+name: Monthly Genshin Code Redeemer
+
+on:
+  schedule:
+    # Runs at 00:00 on the 1st of every month
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+jobs:
+  redeem-codes:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.50.1-focal
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        # Runs in root by default
+        run: npm install
+
+      - name: Run Anchor Browser Automation
+        env:
+          ANCHOR_API_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
+          GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
+          GENSHIN_PASSWORD: ${{ secrets.GENSHIN_PASSWORD }}
+        run: |
+          # create session via curl
+          SESSION_ID=$(curl -X POST "https://api.anchorbrowser.io/api/sessions" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANCHOR_API_KEY" \
+            | jq -r '.id')
+            
+          echo "Created Session: $SESSION_ID"
+          
+          # Run index.mjs from root
+          node index.mjs "$SESSION_ID"
