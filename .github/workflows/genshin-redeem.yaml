@@ -9,8 +9,6 @@ on:
 jobs:
   redeem-codes:
     runs-on: ubuntu-latest
-    # REMOVED: container: mcr.microsoft.com/playwright... (Not needed!)
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,24 +19,34 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
-        # Optimization: Skip downloading 300MB+ of browsers we won't use
+        # Optimizes install by skipping heavy browser binaries
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: npm install
 
       - name: Run Anchor Browser Automation
         env:
-          ANCHOR_API_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
+          # We map the secret to the specific env var expected by the script
+          ANCHOR_BROWSER_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
           GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
           GENSHIN_PASSWORD: ${{ secrets.GENSHIN_PASSWORD }}
         run: |
-          # 1. Create a session via curl
-          SESSION_ID=$(curl -X POST "https://api.anchorbrowser.io/api/sessions" \
+          # 1. Create a session via the correct API endpoint
+          # Using -s (silent) to hide progress bar, but -S (show error) if it fails
+          RESPONSE=$(curl -s -S -X POST "https://api.anchorbrowser.io/v1/sessions" \
             -H "Content-Type: application/json" \
-            -H "x-api-key: $ANCHOR_API_KEY" \
-            | jq -r '.id')
-            
-          echo "Created Session: $SESSION_ID"
-          
-          # 2. Run the script pointing to that session
-          node index.mjs "$SESSION_ID"
+            -H "anchor-api-key: $ANCHOR_BROWSER_KEY" \
+            -d '{}')
+
+          # 2. Extract Session ID
+          SESSION_ID=$(echo "$RESPONSE" | jq -r '.id')
+
+          # 3. Validation & Execution
+          if [ "$SESSION_ID" == "null" ] || [ -z "$SESSION_ID" ]; then
+            echo "❌ Failed to create session."
+            echo "API Response: $RESPONSE"
+            exit 1
+          else
+            echo "✅ Created Session: $SESSION_ID"
+            node index.mjs "$SESSION_ID"
+          fi
