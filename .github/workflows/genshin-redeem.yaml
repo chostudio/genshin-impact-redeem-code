@@ -43,7 +43,7 @@ jobs:
           RESPONSE=$(curl -s -S -X POST "https://api.anchorbrowser.io/v1/sessions" \
             -H "Content-Type: application/json" \
             -H "anchor-api-key: $ANCHOR_BROWSER_KEY" \
-            -d '{}')
+            -d '{"agent": {}}')
           
           # 2. Extract Session ID (FIXED: Added .data)
           SESSION_ID=$(echo "$RESPONSE" | jq -r '.data.id')

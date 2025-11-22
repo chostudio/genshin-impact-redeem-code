@@ -27,10 +27,6 @@ export default async function runAutomation({ ai, secrets }) {
   console.log("🚀 Navigating to Redeem Page...");
   const redeemUrl = "https://genshin.hoyoverse.com/en/gift";
 
-  // FIX: Explicit Navigation Step
-  // We navigate FIRST, before we try to interact with secrets.
-  await ai.evaluate(`Maps to ${redeemUrl} and wait for the page to fully load.`);
-
   console.log("🔐 performing Login...");
 
   // FIX: Secrets Structure & Scope
@@ -40,14 +36,14 @@ export default async function runAutomation({ ai, secrets }) {
     `Log the user in:
        1. Click the "Log In" button (top right).
        2. Wait for the login modal/form to appear.
-       3. Fill the email/username field
-       4. Fill the password field
+       3. Fill the email field with {{HOYOVERSE_EMAIL}}
+       4. Fill the password field with {{HOYOVERSE_PASSWORD}}
        5. Click the Login button.
      
      Wait 5 seconds to ensure login completes.`,
     {
       taskOptions: {
-        url: "https://genshin.hoyoverse.com/en/gift",
+        url: redeemUrl,
         secretValues: {
           HOYOVERSE_EMAIL: secrets.email,
           HOYOVERSE_PASSWORD: secrets.password
