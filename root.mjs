@@ -3,7 +3,7 @@ export default async function runAutomation({ ai, secrets }) {
   
   const codeSourceUrl = "https://heartlog.github.io/Hoyocodes/"; 
 
-  // --- STEP 1: GET CODES ---
+  // --- STEP 1: GET CODES (This part works!) ---
   const extractionResult = await ai.evaluate(
     `Maps to ${codeSourceUrl} and wait for the list to load.
      List out the Genshin Impact codes found on the page.
@@ -12,10 +12,7 @@ export default async function runAutomation({ ai, secrets }) {
 
   let codes = [];
   
-  // FIX: Universal Parser
-  // 1. Split by newline (handles lists)
-  // 2. Remove non-alphanumeric chars (removes "- ", quotes, brackets)
-  // 3. Filter out empty lines or short noise
+  // Use the working cleaning logic from previous attempt
   codes = extractionResult
     .split('\n')
     .map(line => line.replace(/[^a-zA-Z0-9]/g, '').trim())
@@ -28,25 +25,27 @@ export default async function runAutomation({ ai, secrets }) {
     return;
   }
 
-  // FIX: The "Wait" you requested
-  console.log("⏳ Waiting 5 seconds before starting login sequence...");
+  console.log("⏳ Waiting 5 seconds before login...");
   await new Promise(r => setTimeout(r, 5000));
 
-  // --- STEP 2: LOGIN ---
+  // --- STEP 2: LOGIN (FIXED) ---
   console.log("🔐 Logging in to Hoyoverse...");
   const redeemUrl = "https://genshin.hoyoverse.com/en/gift";
 
+  // FIX: Using 'secretValues' based on your docs
   await ai.evaluate(
     `Go to ${redeemUrl}.
-     Check if I am logged in (look for user profile or logout button).
+     Check if the user is already logged in (look for a logout button or profile name).
+     
      If NOT logged in:
-       1. Click Login.
-       2. Fill email with {{email}}.
-       3. Fill password with {{password}}.
-       4. Submit.
-     Wait for the 'Redeem Code' page to be fully visible.`,
+       1. Click the "Log In" button.
+       2. In the email field, type the value associated with key 'email'.
+       3. In the password field, type the value associated with key 'password'.
+       4. Click the Submit/Login button.
+     
+     CRITICAL: If a CAPTCHA (puzzle piece) appears, pause and wait for the user to solve it, then verify you are logged in.`,
     {
-      secrets: {
+      secretValues: {
         email: secrets.email,
         password: secrets.password
       }
@@ -60,18 +59,26 @@ export default async function runAutomation({ ai, secrets }) {
   for (const code of codes) {
     console.log(`🎁 Redeeming: ${code}`);
     
+    // We add a specific check to ensure the login persisted
     const result = await ai.evaluate(
       `Ensure you are on ${redeemUrl}.
+       Check if you are still logged in. If not, stop and say "Logged out".
+       
        1. Select server "${serverRegion}".
        2. Enter code "${code}".
        3. Click Redeem.
-       4. Wait for the popup response.
+       4. Wait for the popup result.
        5. Return the text inside the popup.`
     );
 
     console.log(`   ↳ Result: ${result}`);
     
-    // Wait 5s to avoid rate limiting
+    if (result.includes("Logged out") || result.includes("Account Log In")) {
+      console.log("⚠️ Login failed or session lost. Stopping.");
+      break;
+    }
+
+    // Wait 5s between codes
     await new Promise(r => setTimeout(r, 5000));
   }
 }
