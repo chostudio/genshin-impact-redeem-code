@@ -6,27 +6,31 @@ export default async function runAutomation({ ai, secrets }) {
   // --- STEP 1: GET CODES ---
   const extractionResult = await ai.evaluate(
     `Maps to ${codeSourceUrl} and wait for the list to load.
-     Extract the Genshin Impact codes (usually uppercase strings like 'GENSHINGIFT').
-     Return them as a list.` // simplified prompt since we parse manually now
+     List out the Genshin Impact codes found on the page.
+     Return just the codes, one per line.`
   );
 
   let codes = [];
   
-  // FIX: Regex Extraction
-  // This looks for any uppercase alphanumeric string (5+ chars) surrounded by quotes.
-  // It works for 'CODE', "CODE", or even mixed styles.
-  const matches = extractionResult.match(/['"]([A-Z0-9]{5,})['"]/g);
+  // FIX: Universal Parser
+  // 1. Split by newline (handles lists)
+  // 2. Remove non-alphanumeric chars (removes "- ", quotes, brackets)
+  // 3. Filter out empty lines or short noise
+  codes = extractionResult
+    .split('\n')
+    .map(line => line.replace(/[^a-zA-Z0-9]/g, '').trim())
+    .filter(line => line.length > 5); 
 
-  if (matches) {
-    // Clean up the quotes from the results
-    codes = matches.map(c => c.replace(/['"]/g, ''));
+  if (codes.length > 0) {
     console.log(`💎 Found ${codes.length} codes:`, codes);
   } else {
-    console.error("❌ No codes found in output:", extractionResult);
+    console.error("❌ No codes found. Raw output:", extractionResult);
     return;
   }
 
-  if (!codes.length) return;
+  // FIX: The "Wait" you requested
+  console.log("⏳ Waiting 5 seconds before starting login sequence...");
+  await new Promise(r => setTimeout(r, 5000));
 
   // --- STEP 2: LOGIN ---
   console.log("🔐 Logging in to Hoyoverse...");
@@ -34,7 +38,7 @@ export default async function runAutomation({ ai, secrets }) {
 
   await ai.evaluate(
     `Go to ${redeemUrl}.
-     Check if I am logged in (look for user profile/logout).
+     Check if I am logged in (look for user profile or logout button).
      If NOT logged in:
        1. Click Login.
        2. Fill email with {{email}}.
