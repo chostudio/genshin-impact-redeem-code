@@ -9,9 +9,9 @@ if (!sessionId) {
   process.exit(1)
 }
 
-const apiKey = process.env.ANCHOR_API_KEY
+const apiKey = process.env.ANCHOR_BROWSER_KEY
 if (!apiKey) {
-  console.error('❌ Missing ANCHOR_API_KEY in .env file')
+  console.error('❌ Missing ANCHOR_BROWSER_KEY in .env file')
   process.exit(1)
 }
 
