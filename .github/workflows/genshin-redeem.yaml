@@ -44,17 +44,17 @@ jobs:
             -H "Content-Type: application/json" \
             -H "anchor-api-key: $ANCHOR_BROWSER_KEY" \
             -d '{}')
-
-          # 2. Extract Session ID
-          SESSION_ID=$(echo "$RESPONSE" | jq -r '.id')
-
+          
+          # 2. Extract Session ID (FIXED: Added .data)
+          SESSION_ID=$(echo "$RESPONSE" | jq -r '.data.id')
+          
           # 3. Validation
           if [ "$SESSION_ID" == "null" ] || [ -z "$SESSION_ID" ]; then
             echo "❌ Failed to create session. API Response:"
             echo "$RESPONSE"
             exit 1
           fi
-
+          
           echo "✅ Created Session: $SESSION_ID"
           
           # 4. Run Script
