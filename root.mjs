@@ -25,7 +25,12 @@ export default async function runAutomation({ ai, secrets }) {
 
   // --- STEP 2: PREPARE FOR LOGIN ---
   console.log("🚀 Navigating to Redeem Page...");
+   // FIX: Explicit Navigation Step (else, there's a chance it would go to hoyoverse lab which is not the correct page)
+  // We navigate FIRST, before we try to interact with secrets.
   const redeemUrl = "https://genshin.hoyoverse.com/en/gift";
+  await ai.evaluate(`Maps to ${redeemUrl} and wait for the page to fully load.`);
+
+
 
   console.log("🔐 performing Login...");
 
