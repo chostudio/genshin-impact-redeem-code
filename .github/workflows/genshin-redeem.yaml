@@ -9,8 +9,8 @@ on:
 jobs:
   redeem-codes:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.50.1-focal
+    # REMOVED: container: mcr.microsoft.com/playwright... (Not needed!)
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,7 +21,9 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
-        # Runs in root by default
+        # Optimization: Skip downloading 300MB+ of browsers we won't use
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: npm install
 
       - name: Run Anchor Browser Automation
@@ -30,7 +32,7 @@ jobs:
           GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
           GENSHIN_PASSWORD: ${{ secrets.GENSHIN_PASSWORD }}
         run: |
-          # create session via curl
+          # 1. Create a session via curl
           SESSION_ID=$(curl -X POST "https://api.anchorbrowser.io/api/sessions" \
             -H "Content-Type: application/json" \
             -H "x-api-key: $ANCHOR_API_KEY" \
@@ -38,5 +40,5 @@ jobs:
             
           echo "Created Session: $SESSION_ID"
           
-          # Run index.mjs from root
+          # 2. Run the script pointing to that session
           node index.mjs "$SESSION_ID"
