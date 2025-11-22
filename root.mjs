@@ -4,28 +4,29 @@ export default async function runAutomation({ ai, secrets }) {
   const codeSourceUrl = "https://heartlog.github.io/Hoyocodes/"; 
 
   // --- STEP 1: GET CODES ---
-  // FIX: Pass the prompt as a direct string, not an object.
-  // We combine navigation and extraction into one clear instruction to ensure context is maintained.
   const extractionResult = await ai.evaluate(
-    `Maps to ${codeSourceUrl} and wait for it to load.
-     Look for the Genshin Impact codes section.
-     Extract the codes (usually uppercase strings like 'GENSHINGIFT').
+    `Maps to ${codeSourceUrl} and wait for the list to load.
+     Extract the Genshin Impact codes (uppercase strings).
      
-     OUTPUT RULES:
-     - Return ONLY a valid JSON array of strings.
-     - No markdown (no \`\`\`).
-     - No conversational text.`
+     OUTPUT REQUIREMENTS:
+     1. Return ONLY a JSON array of strings.
+     2. Use DOUBLE QUOTES for strings (e.g. ["CODE1", "CODE2"]).
+     3. No markdown blocks.`
   );
 
   let codes = [];
   try {
-    // Cleanup potential markdown just in case
-    const cleanJson = extractionResult.replace(/```json|```/g, '').trim();
+    const cleanJson = extractionResult
+      .replace(/```json|```/g, '') // Remove markdown
+      .replace(/'/g, '"')          // FIX: Convert single quotes to double quotes
+      .trim();
+      
     codes = JSON.parse(cleanJson);
     console.log(`💎 Found ${codes.length} codes:`, codes);
   } catch (e) {
     console.error("❌ Failed to parse codes. Raw output was:", extractionResult);
-    // Stop here if we didn't get codes
+    // Optional: manually define codes here if parsing fails repeatedly
+    // codes = ["GENSHINGIFT"]; 
     return;
   }
 
@@ -35,16 +36,15 @@ export default async function runAutomation({ ai, secrets }) {
   console.log("🔐 Logging in to Hoyoverse...");
   const redeemUrl = "https://genshin.hoyoverse.com/en/gift";
 
-  // FIX: Assuming the signature is evaluate(promptString, optionsObject) for secrets
   await ai.evaluate(
     `Go to ${redeemUrl}.
-     Check if I am logged in.
+     Check if I am logged in (look for a user profile or logout button).
      If NOT logged in:
-       1. Click login.
+       1. Click Login.
        2. Fill email with {{email}}.
        3. Fill password with {{password}}.
        4. Submit.
-     Wait for the 'Redeem Code' page to load.`,
+     Wait for the 'Redeem Code' page to be fully visible.`,
     {
       secrets: {
         email: secrets.email,
@@ -65,12 +65,13 @@ export default async function runAutomation({ ai, secrets }) {
        1. Select server "${serverRegion}".
        2. Enter code "${code}".
        3. Click Redeem.
-       4. Return the text of the result popup.`
+       4. Wait for the popup response.
+       5. Return the text inside the popup.`
     );
 
     console.log(`   ↳ Result: ${result}`);
     
-    // Wait 5s to act human/avoid rate limits
+    // Wait 5s to avoid rate limiting
     await new Promise(r => setTimeout(r, 5000));
   }
 }
