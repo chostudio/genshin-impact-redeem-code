@@ -6,27 +6,23 @@ export default async function runAutomation({ ai, secrets }) {
   // --- STEP 1: GET CODES ---
   const extractionResult = await ai.evaluate(
     `Maps to ${codeSourceUrl} and wait for the list to load.
-     Extract the Genshin Impact codes (uppercase strings).
-     
-     OUTPUT REQUIREMENTS:
-     1. Return ONLY a JSON array of strings.
-     2. Use DOUBLE QUOTES for strings (e.g. ["CODE1", "CODE2"]).
-     3. No markdown blocks.`
+     Extract the Genshin Impact codes (usually uppercase strings like 'GENSHINGIFT').
+     Return them as a list.` // simplified prompt since we parse manually now
   );
 
   let codes = [];
-  try {
-    const cleanJson = extractionResult
-      .replace(/```json|```/g, '') // Remove markdown
-      .replace(/'/g, '"')          // FIX: Convert single quotes to double quotes
-      .trim();
-      
-    codes = JSON.parse(cleanJson);
+  
+  // FIX: Regex Extraction
+  // This looks for any uppercase alphanumeric string (5+ chars) surrounded by quotes.
+  // It works for 'CODE', "CODE", or even mixed styles.
+  const matches = extractionResult.match(/['"]([A-Z0-9]{5,})['"]/g);
+
+  if (matches) {
+    // Clean up the quotes from the results
+    codes = matches.map(c => c.replace(/['"]/g, ''));
     console.log(`💎 Found ${codes.length} codes:`, codes);
-  } catch (e) {
-    console.error("❌ Failed to parse codes. Raw output was:", extractionResult);
-    // Optional: manually define codes here if parsing fails repeatedly
-    // codes = ["GENSHINGIFT"]; 
+  } else {
+    console.error("❌ No codes found in output:", extractionResult);
     return;
   }
 
@@ -38,7 +34,7 @@ export default async function runAutomation({ ai, secrets }) {
 
   await ai.evaluate(
     `Go to ${redeemUrl}.
-     Check if I am logged in (look for a user profile or logout button).
+     Check if I am logged in (look for user profile/logout).
      If NOT logged in:
        1. Click Login.
        2. Fill email with {{email}}.
