@@ -37,22 +37,20 @@ export default async function runAutomation({ ai, secrets }) {
   // 1. Removed "Go to URL" from this prompt (since we are already there).
   // 2. Used 'taskOptions' nesting based on your docs.
   await ai.evaluate(
-    `Check if the user is already logged in (look for a user profile icon or logout button).
-     
-     If NOT logged in:
+    `Log the user in:
        1. Click the "Log In" button (top right).
        2. Wait for the login modal/form to appear.
-       3. Fill the email/username field with the value of 'EMAIL' (mapping to email).
-       4. Fill the password field with the value of 'PASSWORD' (mapping to password).
-       5. Click Submit/Login.
+       3. Fill the email/username field
+       4. Fill the password field
+       5. Click the Login button.
      
      Wait 5 seconds to ensure login completes.`,
     {
       taskOptions: {
+        url: "https://genshin.hoyoverse.com/en/gift",
         secretValues: {
-          // Mapping the keys to what the prompt expects
-          EMAIL: secrets.email,
-          PASSWORD: secrets.password
+          HOYOVERSE_EMAIL: secrets.email,
+          HOYOVERSE_PASSWORD: secrets.password
         }
       }
     }
