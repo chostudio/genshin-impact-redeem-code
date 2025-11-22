@@ -2,7 +2,6 @@ name: Monthly Genshin Code Redeemer
 
 on:
   schedule:
-    # Runs at 00:00 on the 1st of every month
     - cron: '0 0 1 * *'
   workflow_dispatch:
 
@@ -19,20 +18,28 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
-        # Optimizes install by skipping heavy browser binaries
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: npm install
 
+      # NEW: Safety Check to verify secrets exist before running
+      - name: Check for Secrets
+        env:
+          KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
+          EMAIL: ${{ secrets.GENSHIN_EMAIL }}
+        if: ${{ env.KEY == '' || env.EMAIL == '' }}
+        run: |
+          echo "::error::❌ Secrets are missing! Go to Settings > Secrets and variables > Actions to add ANCHOR_BROWSER_KEY, GENSHIN_EMAIL, and GENSHIN_PASSWORD."
+          exit 1
+
       - name: Run Anchor Browser Automation
         env:
-          # We map the secret to the specific env var expected by the script
           ANCHOR_BROWSER_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
           GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
           GENSHIN_PASSWORD: ${{ secrets.GENSHIN_PASSWORD }}
         run: |
-          # 1. Create a session via the correct API endpoint
-          # Using -s (silent) to hide progress bar, but -S (show error) if it fails
+          # 1. Create a session 
+          # We use the correct endpoint https://api.anchorbrowser.io/v1/sessions
           RESPONSE=$(curl -s -S -X POST "https://api.anchorbrowser.io/v1/sessions" \
             -H "Content-Type: application/json" \
             -H "anchor-api-key: $ANCHOR_BROWSER_KEY" \
@@ -41,12 +48,14 @@ jobs:
           # 2. Extract Session ID
           SESSION_ID=$(echo "$RESPONSE" | jq -r '.id')
 
-          # 3. Validation & Execution
+          # 3. Validation
           if [ "$SESSION_ID" == "null" ] || [ -z "$SESSION_ID" ]; then
-            echo "❌ Failed to create session."
-            echo "API Response: $RESPONSE"
+            echo "❌ Failed to create session. API Response:"
+            echo "$RESPONSE"
             exit 1
-          else
-            echo "✅ Created Session: $SESSION_ID"
-            node index.mjs "$SESSION_ID"
           fi
+
+          echo "✅ Created Session: $SESSION_ID"
+          
+          # 4. Run Script
+          node index.mjs "$SESSION_ID"
