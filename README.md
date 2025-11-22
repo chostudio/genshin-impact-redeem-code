@@ -15,4 +15,4 @@ on:
     - cron: '0 0 1 * *'
 ```
 
-to manually run it right now, Click the Actions tab at the top -> Monthly Genshin Code Redeemer tab in the sidebar -> run workflow button
+to manually run it right now, Click the Actions tab at the top -> Monthly Genshin Code Redeemer tab in the sidebar -> run workflow button (gray dropdown) -> run workflow button (green button)
