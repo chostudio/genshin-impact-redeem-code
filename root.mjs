@@ -37,7 +37,7 @@ export default async function runAutomation({ ai, secrets }) {
   // FIX: Secrets Structure & Scope
   // 1. Removed "Go to URL" from this prompt (since we are already there).
   // 2. Used 'taskOptions' nesting based on your docs.
-  await ai.evaluate(
+  await ai.task(
     `Log the user in:
        1. Click the "Log In" button (top right).
        2. Wait for the login modal/form to appear.
