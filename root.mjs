@@ -34,31 +34,20 @@ export default async function runAutomation({ ai, secrets }) {
 
   console.log("🔐 performing Login...");
 
-  // Validate secrets are available
-  if (!secrets.email || !secrets.password) {
-    console.error("❌ Missing email or password in secrets");
-    return;
-  }
-
-  // Using secretValues as per Anchor Browser documentation:
-  // https://docs.anchorbrowser.io/agentic-browser-control/secret-values
-  // The placeholders should be replaced automatically by Anchor Browser
+  // FIX: Directly interpolate secret values into the prompt instead of using placeholders
+  // This ensures the AI receives the actual values, not placeholder text
   await ai.evaluate(
-    `Log the user in to the Hoyoverse account:
+    `Log the user in:
        1. Click the "Log In" button (top right).
        2. Wait for the login modal/form to appear.
-       3. In the email field, enter: {{HOYOVERSE_EMAIL}}
-       4. In the password field, enter: {{HOYOVERSE_PASSWORD}}
-       5. Click the Login/Submit button to complete the login.
+       3. Fill the email field with "${secrets.email}"
+       4. Fill the password field with "${secrets.password}"
+       5. Click the Login button.
      
-     Wait 5 seconds after clicking login to ensure the session is established.`,
+     Wait 5 seconds to ensure login completes.`,
     {
       taskOptions: {
-        url: redeemUrl,
-        secretValues: {
-          HOYOVERSE_EMAIL: secrets.email,
-          HOYOVERSE_PASSWORD: secrets.password
-        }
+        url: redeemUrl
       }
     }
   );
