@@ -5,7 +5,7 @@ export default async function runAutomation({ ai, secrets }) {
 
   // --- STEP 1: GET CODES ---
   const extractionResult = await ai.evaluate(
-    `Maps to ${codeSourceUrl} and wait for the list to load.
+    `Go to ${codeSourceUrl} and wait for the list to load.
      List out the Genshin Impact codes found on the page.
      Return just the codes, one per line.`
   );
@@ -28,8 +28,7 @@ export default async function runAutomation({ ai, secrets }) {
   // FIX: Explicit Navigation Step (else, there's a chance it would go to hoyoverse lab which is not the correct page)
   // We navigate FIRST, before we try to interact with secrets.
   const redeemUrl = "https://genshin.hoyoverse.com/en/gift";
-  await ai.evaluate(`Maps to ${redeemUrl} and wait for the page to fully load.`);
-
+  await ai.evaluate(`Go to ${redeemUrl} and wait for the page to fully load.`);
 
 
   console.log("🔐 performing Login...");
@@ -44,12 +43,7 @@ export default async function runAutomation({ ai, secrets }) {
        4. Fill the password field with "${secrets.password}"
        5. Click the Login button.
      
-     Wait 5 seconds to ensure login completes.`,
-    {
-      taskOptions: {
-        url: redeemUrl
-      }
-    }
+     Wait 3 seconds to ensure login completes.`,
   );
 
   // --- STEP 3: REDEEM LOOP ---
@@ -60,14 +54,13 @@ export default async function runAutomation({ ai, secrets }) {
     console.log(`🎁 Redeeming: ${code}`);
 
     const result = await ai.evaluate(
-      `Ensure you are on the redeem page (${redeemUrl}).
-       If a login popup is blocking the screen, close it or log in again.
+      `If a login popup is blocking the screen, close it.
 
        1. Select server "${serverRegion}".
        2. Enter code "${code}".
        3. Click Redeem.
        4. Wait for the popup result.
-       5. Return the text inside the popup.`
+       5. Return the text inside the popup. It will say "This Redemption Code is already in use" or "Redeemed successfully!"`
     );
 
     console.log(`   ↳ Result: ${result}`);
@@ -78,6 +71,6 @@ export default async function runAutomation({ ai, secrets }) {
       break;
     }
 
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 3000));
   }
 }
