@@ -33,6 +33,7 @@ jobs:
           exit 1
 
       - name: Run Anchor Browser Automation
+        timeout-minutes: 10
         env:
           ANCHOR_BROWSER_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
           GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
@@ -43,14 +44,7 @@ jobs:
           RESPONSE=$(curl -s -S -X POST "https://api.anchorbrowser.io/v1/sessions" \
             -H "Content-Type: application/json" \
             -H "anchor-api-key: $ANCHOR_BROWSER_KEY" \
-            -d '{
-              "session": {
-                "timeout": {
-                  "max_duration": 1000,
-                  "idle_timeout": 1000
-                }
-              }
-            }')
+            -d '{"agent": {}}')
           
           # 2. Extract Session ID (FIXED: Added .data)
           SESSION_ID=$(echo "$RESPONSE" | jq -r '.data.id')
