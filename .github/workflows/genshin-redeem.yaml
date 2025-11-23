@@ -33,6 +33,7 @@ jobs:
           exit 1
 
       - name: Run Anchor Browser Automation
+        timeout-minutes: 10
         env:
           ANCHOR_BROWSER_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
           GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
