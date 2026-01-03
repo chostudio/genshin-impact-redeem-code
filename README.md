@@ -1,9 +1,15 @@
 # genshin-impact-redeem-code
-AI browser agent that automatically redeems genshin impact codes once a month
+AI browser agent that automatically redeems genshin impact codes once a month.
+
+Built with Anchor Browser, JavaScript, and GitHub Actions.
 
 ![Genshin-Impact-how-to-redeem-codes-3](https://github.com/user-attachments/assets/d676ec92-e03b-43dd-a00e-f4b8f070283b)
 
 ## Setup
+
+Get an API key from Anchor Browser.
+
+Fork the repository.
 
 Add the 3 Secrets (ANCHOR_BROWSER_KEY, GENSHIN_EMAIL, GENSHIN_PASSWORD) to your GitHub Repository Settings -> Secrets and variables -> Actions.
 
@@ -17,4 +23,4 @@ on:
     - cron: '0 0 1 * *'
 ```
 
-To manually run it at any moment, click the Actions tab at the top -> Monthly Genshin Code Redeemer tab in the sidebar -> run workflow button (gray dropdown) -> run workflow button (green button)
+To test it/manually run it at any moment, click the Actions tab at the top -> Monthly Genshin Code Redeemer tab in the sidebar -> run workflow button (gray dropdown) -> run workflow button (green button)
