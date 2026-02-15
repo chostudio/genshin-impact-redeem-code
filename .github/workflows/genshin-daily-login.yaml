@@ -1,0 +1,56 @@
+name: Daily Genshin Login Reward
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  daily-login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        run: npm install
+
+      - name: Check for Secrets
+        env:
+          KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
+          EMAIL: ${{ secrets.GENSHIN_EMAIL }}
+        if: ${{ env.KEY == '' || env.EMAIL == '' }}
+        run: |
+          echo "::error::❌ Secrets are missing! Go to Settings > Secrets and variables > Actions to add ANCHOR_BROWSER_KEY, GENSHIN_EMAIL, and GENSHIN_PASSWORD."
+          exit 1
+
+      - name: Run Anchor Browser Daily Login
+        timeout-minutes: 10
+        env:
+          ANCHOR_BROWSER_KEY: ${{ secrets.ANCHOR_BROWSER_KEY }}
+          GENSHIN_EMAIL: ${{ secrets.GENSHIN_EMAIL }}
+          GENSHIN_PASSWORD: ${{ secrets.GENSHIN_PASSWORD }}
+        run: |
+          RESPONSE=$(curl -s -S -X POST "https://api.anchorbrowser.io/v1/sessions" \
+            -H "Content-Type: application/json" \
+            -H "anchor-api-key: $ANCHOR_BROWSER_KEY" \
+            -d '{"agent": {}}')
+
+          SESSION_ID=$(echo "$RESPONSE" | jq -r '.data.id')
+
+          if [ "$SESSION_ID" == "null" ] || [ -z "$SESSION_ID" ]; then
+            echo "❌ Failed to create session. API Response:"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Created Session: $SESSION_ID"
+
+          node index-daily.mjs "$SESSION_ID"
