@@ -11,7 +11,10 @@ export default async function runAutomation({ ai, secrets }) {
   console.log("🔐 Performing login...");
 
   await ai.evaluate(
-    `Log the user in if not already logged in:
+    `Click the X to get out of the pop up.
+    
+    Then log the user in by clicking on the circle profile icon on the top right. 
+    
        1. If you see a "Log In" or "Login" button, click it.
        2. Wait for the login modal or form to appear.
        3. Fill the email/username field with "${secrets.email}"
