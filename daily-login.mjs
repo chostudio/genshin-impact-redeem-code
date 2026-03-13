@@ -5,13 +5,14 @@ export default async function runAutomation({ ai, secrets }) {
   console.log("📅 Navigating to Hoyolab Daily Login...");
 
   await ai.evaluate(
-    `Go to ${dailyLoginUrl} and wait for the page to fully load.`
+    `Go to ${dailyLoginUrl} and wait for the page to fully load. Click the X to get out of the pop up.`
   );
 
   console.log("🔐 Performing login...");
 
   await ai.evaluate(
-    `Click the X to get out of the pop up.
+    `
+    Go back to ${dailyLoginUrl}
     
     Then log the user in by clicking on the circle profile icon on the top right. 
     
