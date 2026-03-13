@@ -12,7 +12,7 @@ export default async function runAutomation({ ai, secrets }) {
 
   await ai.evaluate(
     `
-    Go back to ${dailyLoginUrl}
+    Make sure you're on ${dailyLoginUrl}
     
     Then log the user in by clicking on the circle profile icon on the top right. 
     
