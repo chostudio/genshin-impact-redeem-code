@@ -5,6 +5,10 @@ Built with Anchor Browser, JavaScript, and GitHub Actions.
 
 ![Genshin-Impact-how-to-redeem-codes-3](https://github.com/user-attachments/assets/d676ec92-e03b-43dd-a00e-f4b8f070283b)
 
+### Workflows
+
+Login to hoyoverse lab to redeem daily rewards on the website. (Note that this is not the in-game primogems)
+
 ## Setup
 
 Get an API key from Anchor Browser.
